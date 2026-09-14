@@ -64,15 +64,15 @@ const FRIGHTEN_SEQUENCE = [200, 400, 800, 1600]; // puntos por fantasma comido
 
 ## Acceptance criteria
 
-- [ ] Cargar `src/index.html` sin errores: se ven 4 pellets más grandes que los dots en `(1,3)`, `(26,3)`, `(1,23)` y `(26,23)`.
-- [ ] Comer un Power Pellet suma 50 puntos, decrementa `dotsRemaining` y pone a los fantasmas liberados azules durante 450 frames.
-- [ ] Con el estado asustado activo, Pacman puede atravesar/collisionar con un fantasma sin perder vida: se lo come.
-- [ ] Los fantasmas comidos puntúan 200, 400, 800 y 1600 en ese orden por Power Pellet; al comer otro pellet la secuencia vuelve a 200.
-- [ ] Tras 450 frames (o al comer un segundo pellet, que reinicia la duración), los fantasmas vuelven a su color normal y vuelven a costar vida.
-- [ ] Un fantasma comido se teletransporta al pen, se dibuja solo con los ojos y se re-libera a su spawn como fantasma normal tras `RELEASE_DELAY`.
-- [ ] La colisión con un fantasma no asustado sigue costando vida y reiniciando posiciones, y ese reinicio limpia el estado asustado (los fantasmas no reaparecen azules).
-- [ ] No cambian paredes, puerta, túnel, `GHOST_STARTS` ni `GHOST_SPAWNS` respecto del estado actual.
-- [ ] Se puede ganar la partida: `dotsRemaining` incluye los pellets y llega a 0.
+- [x] Cargar `src/index.html` sin errores: se ven 4 pellets más grandes que los dots en `(1,3)`, `(26,3)`, `(1,23)` y `(26,23)`.
+- [x] Comer un Power Pellet suma 50 puntos, decrementa `dotsRemaining` y pone a los fantasmas liberados azules durante 450 frames.
+- [x] Con el estado asustado activo, Pacman puede atravesar/collisionar con un fantasma sin perder vida: se lo come.
+- [x] Los fantasmas comidos puntúan 200, 400, 800 y 1600 en ese orden por Power Pellet; al comer otro pellet la secuencia vuelve a 200.
+- [x] Tras 450 frames (o al comer un segundo pellet, que reinicia la duración), los fantasmas vuelven a su color normal y vuelven a costar vida.
+- [x] Un fantasma comido se teletransporta al pen, se dibuja solo con los ojos y se re-libera a su spawn como fantasma normal tras `RELEASE_DELAY`.
+- [x] La colisión con un fantasma no asustado sigue costando vida y reiniciando posiciones, y ese reinicio limpia el estado asustado (los fantasmas no reaparecen azules).
+- [x] No cambian paredes, puerta, túnel, `GHOST_STARTS` ni `GHOST_SPAWNS` respecto del estado actual.
+- [x] Se puede ganar la partida: `dotsRemaining` incluye los pellets y llega a 0.
 
 ## Decisions
 

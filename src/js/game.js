@@ -12,6 +12,9 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 
 const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
 const GHOST_SPEED = 0.1;    // 1/10 celda/frame
+const PELLET_SCORE = 50;
+const FRIGHTEN_TIME = 450;
+const FRIGHTEN_SEQUENCE = [ 200, 400, 800, 1600 ];
 
 // Ruta del patrullero: ping-pong entre los dos extremos del corredor abierto
 // de la fila 5.
@@ -28,7 +31,7 @@ function createGame() {
   grid[ PACMAN_START.y ][ PACMAN_START.x ] = 0;
 
   let dots = 0;
-  for ( const row of grid ) for ( const v of row ) if ( v === 2 ) dots++;
+  for ( const row of grid ) for ( const v of row ) if ( v === 2 || v === 4 ) dots++;
 
   return {
     state: 'start',
@@ -36,6 +39,8 @@ function createGame() {
     lives: 3,
     dotsRemaining: dots,
     ghostTimer: 0,
+    frightenTimer: 0,
+    frightenSeqIndex: 0,
     grid,
     pacman: {
       x: PACMAN_START.x,
@@ -53,6 +58,7 @@ function createGame() {
         kind: g.kind,
         releaseAt: i * RELEASE_DELAY,
         released: false,
+        eaten: false,
       };
       if ( g.kind === 'patroller' ) ghost.patrolTarget = 0;
       return ghost;
@@ -121,10 +127,15 @@ function movePacman( game ) {
       p.nextDir = null;
     }
     // Comer dot.
-    if ( grid[ p.y ][ p.x ] === 2 ) {
+    const tile = grid[ p.y ][ p.x ];
+    if ( tile === 2 || tile === 4 ) {
       grid[ p.y ][ p.x ] = 0;
-      game.score += 10;
+      game.score += tile === 4 ? PELLET_SCORE : 10;
       game.dotsRemaining--;
+      if ( tile === 4 ) {
+        game.frightenTimer = FRIGHTEN_TIME;
+        game.frightenSeqIndex = 0;
+      }
     }
     // Si no puede seguir, se detiene en la celda.
     if ( !canMove( grid, p.x, p.y, p.dir, 'pacman' ) ) return;
@@ -145,6 +156,12 @@ function decideGhost( game, g ) {
   );
   // Sin salida (callejon): permitir el giro de 180.
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
+
+  // Asustado: movimiento aleatorio, sin personalidades.
+  if ( game.frightenTimer > 0 ) {
+    g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
+    return;
+  }
 
   // Direccion del cruce que mas reduce Manhattan hacia (tx,ty).
   function aim( tx, ty ) {
@@ -193,8 +210,10 @@ function moveGhost( game, g ) {
 
   // Todavia no toca su turno: queda inmóvil dentro del pen hasta su liberacion.
   if ( !g.released ) {
-    if ( game.ghostTimer >= g.releaseAt ) g.released = true;
-    else return;
+    if ( game.ghostTimer >= g.releaseAt ) {
+      g.released = true;
+      g.eaten = false;
+    } else return;
   }
 
   if ( aligned( g.x ) && aligned( g.y ) ) {
@@ -219,6 +238,8 @@ function moveGhost( game, g ) {
 function resetPositions( game ) {
   const p = game.pacman;
   game.ghostTimer = 0;
+  game.frightenTimer = 0;
+  game.frightenSeqIndex = 0;
   p.x = PACMAN_START.x;
   p.y = PACMAN_START.y;
   p.dir = 'left';
@@ -228,6 +249,7 @@ function resetPositions( game ) {
     g.y = GHOST_STARTS[ i ].y;
     g.dir = 'up';
     g.released = false;
+    g.eaten = false;
     if ( g.kind === 'patroller' ) g.patrolTarget = 0;
   } );
 }
@@ -238,11 +260,27 @@ function collides( a, b ) {
 
 function update( game ) {
   game.ghostTimer++;
+  if ( game.frightenTimer > 0 ) game.frightenTimer--;
   movePacman( game );
   game.ghosts.forEach( ( g ) => moveGhost( game, g ) );
 
   for ( const g of game.ghosts ) {
     if ( collides( game.pacman, g ) ) {
+      // Fantasma asustado (y no ya comido): se lo come.
+      if ( game.frightenTimer > 0 && !g.eaten ) {
+        const seqIndex = Math.min( game.frightenSeqIndex, FRIGHTEN_SEQUENCE.length - 1 );
+        game.score += FRIGHTEN_SEQUENCE[ seqIndex ];
+        game.frightenSeqIndex = Math.min( seqIndex + 1, FRIGHTEN_SEQUENCE.length - 1 );
+        g.eaten = true;
+        g.x = GHOST_STARTS[ game.ghosts.indexOf( g ) ].x;
+        g.y = GHOST_STARTS[ game.ghosts.indexOf( g ) ].y;
+        g.released = false;
+        g.dir = 'up';
+        g.releaseAt = game.ghostTimer + RELEASE_DELAY;
+        break;
+      }
+      // Fantasma normal: perder una vida.
+      if ( g.eaten ) continue;
       game.lives--;
       if ( game.lives <= 0 ) {
         game.state = 'lost';

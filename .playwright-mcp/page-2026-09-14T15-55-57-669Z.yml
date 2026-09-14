@@ -1,0 +1,4 @@
+- generic [ref=e4]:
+  - heading "PAC-MAN" [level=1] [ref=e5]
+  - paragraph [ref=e6]: Flechas para moverte. Come todos los puntos.
+  - button "Start" [ref=e7] [cursor=pointer]

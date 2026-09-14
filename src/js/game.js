@@ -157,6 +157,13 @@ function decideGhost( game, g ) {
     }
     const t = PATROL_POINTS[ g.patrolTarget ];
     g.dir = aim( t.x, t.y );
+  } else if ( g.kind === 'ambusher' ) {
+    // Regla Pinky: objetivo = Pacman + 4 celdas en su dirección actual,
+    // clamped al tablero.
+    const pd = DIRS[ p.dir ] || { x: 0, y: 0 };
+    const tx = Math.max( 0, Math.min( grid[ 0 ].length - 1, Math.round( p.x ) + pd.x * 4 ) );
+    const ty = Math.max( 0, Math.min( grid.length - 1, Math.round( p.y ) + pd.y * 4 ) );
+    g.dir = aim( tx, ty );
   } else {
     g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
   }

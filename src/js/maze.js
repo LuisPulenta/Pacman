@@ -58,16 +58,7 @@ const GHOST_STARTS = [
   { x: 13, y: 15, kind: 'random' }, // errático, dentro de la pen
 ];
 
-// Puntos de aparicion en el mapa (celdas abiertas, fila y=11). Indice = tipo de fantasma.
-const GHOST_SPAWNS = [
-  { x: 13, y: 11 }, // hunter
-  { x: 14, y: 11 }, // ambusher
-  { x: 12, y: 11 }, // patroller
-  { x: 15, y: 11 }, // random
-];
-
 window.MAZE = MAZE;
 window.TUNNEL_ROW = TUNNEL_ROW;
 window.PACMAN_START = PACMAN_START;
 window.GHOST_STARTS = GHOST_STARTS;
-window.GHOST_SPAWNS = GHOST_SPAWNS;

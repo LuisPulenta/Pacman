@@ -64,21 +64,27 @@ function aligned( v ) {
   return Math.abs( v - Math.round( v ) ) < 1e-3;
 }
 
-// Esta la celda dentro del pen? El interior de la pen son las celdas
-// (x in [11,16], y in [13,15]) bajo la puerta de la fila 12.
+// Esta la celda dentro de la pen o sobre su puerta de salida? El interior
+// de la pen son las celdas (x in [11,16], y in [13,15]); y=12 es la puerta
+// (cols 13-14) por la que un fantasma sale y que le bloquea el regreso.
 function insidePen( x, y ) {
-  return x >= 11 && x <= 16 && y >= 13 && y <= 15;
+  return x >= 11 && x <= 16 && y >= 12 && y <= 15;
 }
 
 // Una celda es muro para el actor dado?
 //   pacman: bloqueado por pared (1) y puerta (3)
-//   ghost:  bloqueado solo por pared (1)
+//   ghost:  bloqueado por pared (1); la puerta (3) solo es transitable
+//   desde dentro de la pen (salida), para que un fantasma ya liberado
+//   no vuelva a entrar (anti-reentrada).
 function isWall( grid, x, y, actor ) {
   if ( y < 0 || y >= grid.length ) return true;
   if ( x < 0 || x >= grid[ 0 ].length ) return true;
   const v = grid[ y ][ x ];
   if ( v === 1 ) return true;
-  if ( v === 3 && actor === 'pacman' ) return true;
+  if ( v === 3 ) {
+    if ( actor === 'pacman' ) return true;
+    return !insidePen( actor.x, actor.y );
+  }
   return false;
 }
 
@@ -135,7 +141,7 @@ function decideGhost( game, g ) {
   const p = game.pacman;
 
   const options = Object.keys( DIRS ).filter(
-    ( dir ) => dir !== OPPOSITE[ g.dir ] && canMove( grid, g.x, g.y, dir, 'ghost' )
+    ( dir ) => dir !== OPPOSITE[ g.dir ] && canMove( grid, g.x, g.y, dir, g )
   );
   // Sin salida (callejon): permitir el giro de 180.
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
@@ -185,7 +191,7 @@ function moveGhost( game, g ) {
   const grid = game.grid;
   const width = grid[ 0 ].length;
 
-  // Todavia no toca su turno: queda inmóvil en la pen.
+  // Todavia no toca su turno: queda inmóvil dentro del pen hasta su liberacion.
   if ( !g.released ) {
     if ( game.ghostTimer >= g.releaseAt ) g.released = true;
     else return;
@@ -194,13 +200,14 @@ function moveGhost( game, g ) {
   if ( aligned( g.x ) && aligned( g.y ) ) {
     g.x = Math.round( g.x );
     g.y = Math.round( g.y );
-    // Dentro de la pen, sube por la puerta sin aplicar su personalidad.
+    // Dentro de la pen (incluida la fila de la puerta): sale en linea recta
+    // hacia arriba por la puerta sin aplicar su personalidad.
     if ( insidePen( g.x, g.y ) ) {
       g.dir = 'up';
     } else {
       decideGhost( game, g );
     }
-    if ( !canMove( grid, g.x, g.y, g.dir, 'ghost' ) ) return;
+    if ( !canMove( grid, g.x, g.y, g.dir, g ) ) return;
   }
 
   const d = DIRS[ g.dir ];

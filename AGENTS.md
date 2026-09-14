@@ -15,7 +15,7 @@ Los 4 scripts se cargan en orden en `src/index.html:19-22` y se comunican con gl
 - Al añadir un archivo: agregarlo a `index.html` en la posición correcta y exponer lo compartido con `window.*`. No existe módulos ES ni bundler.
 - `MAZE` (`maze.js:50`) es inmutable por convención: nunca mutarlo. `createGame()` copia por filas a `game.grid`, que es lo que se dibuja muta (dots comidos) para permitir reiniciar.
 - Coding grid legend (`maze.js:2`): `#`=1 pared, `.`=2 dot, `-`=3 puerta pen, espacio=0 vacío. Coordenadas en celdas (x,y), origen arriba-izquierda, grid 28×31, tunel en fila 14 (`TUNNEL_ROW`).
-- La puerta (3) bloquea solo a Pacman; los fantasmas pasan (`game.js:56-63`).
+- La puerta (3) bloquea a Pacman siempre; a los fantasmas solo les deja pasar cuando están dentro de la pen (para salir), y les bloquea una vez fuera (anti-reentrada, `game.js:67-89`).
 - Estilo JS: `const`/`let`, llaves y paréntesis con espacios internos (`( x )`, `&&`), comentarios y strings de UI en español. Mantener el estilo del código existente y los comentarios en español.
 
 ## Workflow spec-driven

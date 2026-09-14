@@ -1,6 +1,6 @@
 # SPEC 03 — Power Pellets y fantasmas comestibles
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Depends on:** SPEC 01, SPEC 02
 > **Date:** 2026-09-14
 > **Objective:** Añadir 4 Power Pellets al laberinto que, al comerlos, dejen a Pacman comer fantasmas durante un tiempo limitado, con puntos que se duplican por secuencia.

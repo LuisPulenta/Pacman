@@ -1,6 +1,6 @@
 # SPEC 01 — 4 fantasmas con personalidades independientes
 
-> **Status:** Approved
+> **Status:** Implemented
 > **Date:** 2026-09-13
 > **Objective:** Añadir 4 fantasmas al Pac-Man con personalidades independientes — agresor, patrullero, emboscador y errático — cada uno con reglas de movimiento propias, y el agresor persiguiendo a Pacman directamente.
 
@@ -64,15 +64,15 @@ const RELEASE_DELAY = 60; // frames entre salidas (~1 s a 60 fps)
 
 ## Acceptance criteria
 
-- [ ] Cargar `src/index.html` no produce errores en consola y muestra 4 fantasmas de colores rojo, cian, rosa y naranja.
-- [ ] Al empezar, el agresor (rojo) sale de la pen de inmediato; cian, rosa y naranja salen uno a uno a ~1 s de diferencia, quedándose inmóviles hasta su turno.
-- [ ] El agresor (rojo) reduce en cada cruce su distancia Manhattan a la celda de Pacman; no la aumenta salvo callejón sin salida (giro 180°).
-- [ ] El patrullero (cian) alterna su objetivo entre `(1,5)` y `(26,5)`: alcanzado un extremo, se dirige al otro y nunca elige una dirección contraria a ese objetivo.
-- [ ] El emboscador (rosa) usa como objetivo Pacman + 4 celdas en su dirección actual, sin salirse del tablero (clamp en el túnel).
-- [ ] El errático (naranja) elige dirección aleatoria entre las válidas distintas de la reversa; usa la reversa solo en callejón sin salida.
-- [ ] Un fantasma liberado dentro de la pen sale por la puerta siempre hacia arriba, sin aplicar personalidad hasta salir.
-- [ ] Al reiniciar tras ganar o perder, los 4 fantasmas reaparecen en sus celdas del pen sin duplicarse ni solaparse con Pacman, y el temporizador de salida vuelve a 0.
-- [ ] No cambian paredes, dots, puerta, túnel, score ni vidas respecto del estado actual.
+- [x] Cargar `src/index.html` no produce errores en consola y muestra 4 fantasmas de colores rojo, cian, rosa y naranja.
+- [x] Al empezar, el agresor (rojo) sale de la pen de inmediato; cian, rosa y naranja salen uno a uno a ~1 s de diferencia, quedándose inmóviles hasta su turno.
+- [x] El agresor (rojo) reduce en cada cruce su distancia Manhattan a la celda de Pacman; no la aumenta salvo callejón sin salida (giro 180°).
+- [x] El patrullero (cian) alterna su objetivo entre `(1,5)` y `(26,5)`: alcanzado un extremo, se dirige al otro y nunca elige una dirección contraria a ese objetivo.
+- [x] El emboscador (rosa) usa como objetivo Pacman + 4 celdas en su dirección actual, sin salirse del tablero (clamp en el túnel).
+- [x] El errático (naranja) elige dirección aleatoria entre las válidas distintas de la reversa; usa la reversa solo en callejón sin salida.
+- [x] Un fantasma liberado dentro de la pen sale por la puerta siempre hacia arriba, sin aplicar personalidad hasta salir.
+- [x] Al reiniciar tras ganar o perder, los 4 fantasmas reaparecen en sus celdas del pen sin duplicarse ni solaparse con Pacman, y el temporizador de salida vuelve a 0.
+- [x] No cambian paredes, dots, puerta, túnel, score ni vidas respecto del estado actual.
 
 ## Decisions
 

@@ -17,6 +17,9 @@ const GHOST_SPEED = 0.1;    // 1/10 celda/frame
 // de la fila 5.
 const PATROL_POINTS = [ { x: 1, y: 5 }, { x: 26, y: 5 } ];
 
+// Frames entre liberaciones de fantasmas de la pen (~1 s a 60 fps).
+const RELEASE_DELAY = 60;
+
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
 function createGame() {
@@ -32,6 +35,7 @@ function createGame() {
     score: 0,
     lives: 3,
     dotsRemaining: dots,
+    ghostTimer: 0,
     grid,
     pacman: {
       x: PACMAN_START.x,
@@ -40,13 +44,15 @@ function createGame() {
       nextDir: null,
       speed: PACMAN_SPEED,
     },
-    ghosts: GHOST_STARTS.map( ( g ) => {
+    ghosts: GHOST_STARTS.map( ( g, i ) => {
       const ghost = {
         x: g.x,
         y: g.y,
         dir: 'up',
         speed: GHOST_SPEED,
         kind: g.kind,
+        releaseAt: i * RELEASE_DELAY,
+        released: false,
       };
       if ( g.kind === 'patroller' ) ghost.patrolTarget = 0;
       return ghost;
@@ -56,6 +62,12 @@ function createGame() {
 
 function aligned( v ) {
   return Math.abs( v - Math.round( v ) ) < 1e-3;
+}
+
+// Esta la celda dentro del pen? El interior de la pen son las celdas
+// (x in [11,16], y in [13,15]) bajo la puerta de la fila 12.
+function insidePen( x, y ) {
+  return x >= 11 && x <= 16 && y >= 13 && y <= 15;
 }
 
 // Una celda es muro para el actor dado?
@@ -173,10 +185,21 @@ function moveGhost( game, g ) {
   const grid = game.grid;
   const width = grid[ 0 ].length;
 
+  // Todavia no toca su turno: queda inmóvil en la pen.
+  if ( !g.released ) {
+    if ( game.ghostTimer >= g.releaseAt ) g.released = true;
+    else return;
+  }
+
   if ( aligned( g.x ) && aligned( g.y ) ) {
     g.x = Math.round( g.x );
     g.y = Math.round( g.y );
-    decideGhost( game, g );
+    // Dentro de la pen, sube por la puerta sin aplicar su personalidad.
+    if ( insidePen( g.x, g.y ) ) {
+      g.dir = 'up';
+    } else {
+      decideGhost( game, g );
+    }
     if ( !canMove( grid, g.x, g.y, g.dir, 'ghost' ) ) return;
   }
 
@@ -188,6 +211,7 @@ function moveGhost( game, g ) {
 
 function resetPositions( game ) {
   const p = game.pacman;
+  game.ghostTimer = 0;
   p.x = PACMAN_START.x;
   p.y = PACMAN_START.y;
   p.dir = 'left';
@@ -196,6 +220,7 @@ function resetPositions( game ) {
     g.x = GHOST_STARTS[ i ].x;
     g.y = GHOST_STARTS[ i ].y;
     g.dir = 'up';
+    g.released = false;
     if ( g.kind === 'patroller' ) g.patrolTarget = 0;
   } );
 }
@@ -205,6 +230,7 @@ function collides( a, b ) {
 }
 
 function update( game ) {
+  game.ghostTimer++;
   movePacman( game );
   game.ghosts.forEach( ( g ) => moveGhost( game, g ) );
 

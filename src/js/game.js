@@ -13,6 +13,10 @@ const OPPOSITE = { left: 'right', right: 'left', up: 'down', down: 'up' };
 const PACMAN_SPEED = 0.125; // 1/8 celda/frame -> alinea cada 8 frames
 const GHOST_SPEED = 0.1;    // 1/10 celda/frame
 
+// Ruta del patrullero: ping-pong entre los dos extremos del corredor abierto
+// de la fila 5.
+const PATROL_POINTS = [ { x: 1, y: 5 }, { x: 26, y: 5 } ];
+
 // Crea una partida nueva. Copia MAZE (pristino) a game.grid para poder comer
 // dots sin destruir el original, y reiniciar.
 function createGame() {
@@ -36,13 +40,17 @@ function createGame() {
       nextDir: null,
       speed: PACMAN_SPEED,
     },
-    ghosts: GHOST_STARTS.map( ( g ) => ( {
-      x: g.x,
-      y: g.y,
-      dir: 'up',
-      speed: GHOST_SPEED,
-      kind: g.kind,
-    } ) ),
+    ghosts: GHOST_STARTS.map( ( g ) => {
+      const ghost = {
+        x: g.x,
+        y: g.y,
+        dir: 'up',
+        speed: GHOST_SPEED,
+        kind: g.kind,
+      };
+      if ( g.kind === 'patroller' ) ghost.patrolTarget = 0;
+      return ghost;
+    } ),
   };
 }
 
@@ -120,22 +128,35 @@ function decideGhost( game, g ) {
   // Sin salida (callejon): permitir el giro de 180.
   const choices = options.length ? options : [ '' + OPPOSITE[ g.dir ] ];
 
-  if ( g.kind === 'hunter' ) {
-    const px = Math.round( p.x );
-    const py = Math.round( p.y );
+  // Direccion del cruce que mas reduce Manhattan hacia (tx,ty).
+  function aim( tx, ty ) {
     let best = choices[ 0 ];
     let bestDist = Infinity;
     for ( const dir of choices ) {
       const d = DIRS[ dir ];
       const nx = g.x + d.x;
       const ny = g.y + d.y;
-      const dist = Math.abs( nx - px ) + Math.abs( ny - py );
+      const dist = Math.abs( nx - tx ) + Math.abs( ny - ty );
       if ( dist < bestDist ) {
         bestDist = dist;
         best = dir;
       }
     }
-    g.dir = best;
+    return best;
+  }
+
+  if ( g.kind === 'hunter' ) {
+    const px = Math.round( p.x );
+    const py = Math.round( p.y );
+    g.dir = aim( px, py );
+  } else if ( g.kind === 'patroller' ) {
+    // Objetivo: el extremo de la ruta; al alcanzarlo, alterna al otro.
+    const target = PATROL_POINTS[ g.patrolTarget ];
+    if ( g.x === target.x && g.y === target.y ) {
+      g.patrolTarget = 1 - g.patrolTarget;
+    }
+    const t = PATROL_POINTS[ g.patrolTarget ];
+    g.dir = aim( t.x, t.y );
   } else {
     g.dir = choices[ Math.floor( Math.random() * choices.length ) ];
   }
@@ -168,6 +189,7 @@ function resetPositions( game ) {
     g.x = GHOST_STARTS[ i ].x;
     g.y = GHOST_STARTS[ i ].y;
     g.dir = 'up';
+    if ( g.kind === 'patroller' ) g.patrolTarget = 0;
   } );
 }
 
